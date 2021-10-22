@@ -1,0 +1,36 @@
+---
+- name: "Check host activity"
+  host: all
+  tasks:
+
+  - name: "Set working directory variable (user readability)"
+    set_fact: "user={{ firstname[:3] | lower }}-{{ lastname[:6] | lower }}"
+
+  - name: "Set user variable (user readability)"
+    set_fact: "login={{ firstname[0] | lower }}-{{ lastname[:6] | lower }}"
+
+    ## there's absolutely no changement, checking if user has logged in
+  - name: "Check if user has logged on"
+    shell: "last -Rn1 {{ login }} | head -c 1"
+    register: r
+    changed_when: false
+
+  - name: "Checking if user {{ login }} has logged on"
+    set_fact: "user_logged={{ r.stdout != "" }}"
+
+  ## Delete self
+  - name: "Auto destruction in 3 2 1"
+    awx.awx.schedule:
+      name: "Check activity {{ user }}"
+      state: absent
+    when: user_logged
+
+  - name: "Getting new destruction time"
+    set_fact: "destroy_time={{'%Y-%m-%d %H:%M:%S' | strftime(ansible_date_time.epoch|int+1200) }}"
+    when: user_logged
+
+  - name: "Scheduling new EC2 destroyer"
+    awx.awx.schedule:
+      name: "Destroyer of EC2 {{ user }}"
+      rrule: "{{ query('awx.awx.schedule_rrule', 'none', timezone='UTC', start_date=destroy_time) }}"
+      state: present

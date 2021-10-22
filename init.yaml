@@ -1,0 +1,109 @@
+---
+- name: "Generate initial templates"
+  hosts: all
+  become: false
+  tasks:
+
+  - name: "Set working directory variable (user readability)"
+    set_fact: "user={{ firstname[:3] | lower }}-{{ lastname[:6] | lower }}"
+
+  - name: "Set user variable (user readability)"
+    set_fact: "login={{ firstname[0] | lower }}-{{ lastname[:6] | lower }}"
+
+  - name: "Cloning Terraform Git"
+    git:
+      repo: ""
+      accept_hostkey: yes
+      clone: yes
+      force: no
+      dest: "{{ user }}"
+
+  - name: "Generate keypair SSH"
+    openssh_keypair:
+      force: false
+      state: present
+      type: ed25519
+      comment: "{{ email }}"
+      path: "{{ user }}/user.key"
+    register: user_pub
+
+  - name: "Generate keypair for AWX connection"
+    openssh_keypair:
+      force: false
+      state: present
+      type: ed25519
+      comment: "awx@{{ inventory_hostname }}"
+      path: "{{ user }}/awx.key"
+    register: awx_pub
+
+  - name: "Get private awx key"
+    slurp:
+      src: "{{ user }}/awx.key"
+    register: awx_key
+
+  - name: "Get private user key"
+    slurp:
+      src: "{{ user }}/user.key"
+    register: user_key
+
+  - name: "Generate tfvars"
+    template:
+      dest: "{{ user }}/terraform.auto.tfvars"
+      src: "terraform.auto.tfvars.j2"
+
+  - name: "Create SSH credentials for newly created host"
+    awx.awx.credential:
+      name: "{{ user }}.{{ domain }} SSH"
+      description: "SSH connection for backdoor"
+      organization: "Default"
+      credential_type: "Machine"
+      inputs:
+        username: "rocky"
+        ssh_key_data: "{{ awx_key | b64decode }}"
+        become_method: "sudo"
+        become_username: "root"
+
+  - name: "Create HOST in EC2 Managed"
+    awx.awx.host:
+      name: "{{ user }}.{{ domain }}"
+      inventory: "EC2 Managed"
+      description: "EC2 Managed by AWX, used by {{ firstname }} {{ lastname }}"
+      enabled: yes
+      state: present
+
+  - name: "Set check activity five minute late"
+    set_fact: "scheduled_time={{'%Y-%m-%d %H:%M:%S' | strftime(ansible_date_time.epoch|int+300) }}"
+
+  - name: "Set destroy instance 2 hours late"
+    set_fact: "destroy_time={{'%Y-%m-%d %H:%M:%S' | strftime(ansible_date_time.epoch|int+7200) }}"
+
+  - name: "Launch check activity scheduler"
+    awx.awx.schedule:
+      name: "Check activity {{ user }}"
+      description: "Check activity for instance used by {{ firstname }} {{ lastname }}"
+      inventory: "EC2 Managed"
+      credentials:
+        - "{{ user }}.{{ domain }} SSH"
+      job_type: "run"
+      limit: "{{ user }}.{{ domain }}"
+      state: present
+      enabled: yes
+      unified_job_template: "Check activity"
+      organization: "Default"
+      rrule: "{{ query('awx.awx.schedule_rrule', 'minute', every=1, timezone='UTC', end_on='120', start_date=scheduled_time)}}"
+
+  - name: "Launch scheduled EC2 destroyer"
+    awx.awx.schedule:
+      name: "Destroyer of EC2 {{ user }}"
+      description: "Timeout, instance is destroyed, DO NOT TOUCH OR BEHAVIOR IS UNDEFINED"
+      inventory: "AWX localhost baremetal"
+      credentials:
+        - "AWX SSH"
+        - "AWS token"
+      job_type: "run"
+      extra_data:
+        grade: no
+      enabled: yes
+      unified_job_template: "The EC2 destroyer"
+      organization: "Default"
+      rrule: "{{ query('awx.awx.schedule_rrule', 'none', timezone='UTC', start_date=destroy_time)}}"
