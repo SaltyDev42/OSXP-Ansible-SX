@@ -1,6 +1,6 @@
 ---
 - name: "Check host activity"
-  host: all
+  hosts: all
   tasks:
   - name: "Attempting at checking host activity"
     block:
@@ -11,7 +11,7 @@
       changed_when: false
 
     - name: "Checking if user {{ login }} has logged on"
-      set_fact: "user_logged={{ r.stdout != "" }}"
+      set_fact: "user_logged={{ r.stdout != '' }}"
 
     ## Delete self
     - name: "Auto destruction in 3 2 1"
