@@ -34,7 +34,25 @@
 
     ## If the above does not work, destroy the EC2, we are victim of TOCTOU race condition attack
     rescue:
-    - name: "Scheduling new EC2 destroyer"
+    - name: "Destroying scheduled EC2 destroyer"
       awx.awx.schedule:
         name: "Destroyer of EC2 {{ user }}"
         state: absent
+
+    - name: "Auto destruction in 3 2 1"
+      awx.awx.schedule:
+        name: "Check activity {{ user }}"
+        state: absent
+
+    - name: "Launching EC2 job destroyer"
+      awx.awx.job_launch:
+        name: "EC2 Destroy"
+        job_type: "run"
+        inventory: "AWX localhost baremetal"
+        organization: "Default"
+        credentials:
+          - "AWX unprivileged token"
+          - "AWS token"
+          - "AWX SSH"
+        wait: yes
+        timeout: 600
