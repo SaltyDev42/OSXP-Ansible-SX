@@ -15,6 +15,8 @@
 
   - name: "Destroying credential"
     awx.awx.credential:
+      controller_host: "{{ lookup('env', 'TOWER_HOST') }}"
+      controller_oauthtoken: "{{ lookup('env', 'TOWER_OAUTH_TOKEN') }}"
       name: "{{ user }}.{{ domain }} SSH"
       state: absent
 

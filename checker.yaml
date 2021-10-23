@@ -16,16 +16,20 @@
     ## Delete self
     - name: "Auto destruction in 3 2 1"
       awx.awx.schedule:
+        controller_host: "{{ lookup('env', 'TOWER_HOST') }}"
+        controller_oauthtoken: "{{ lookup('env', 'TOWER_OAUTH_TOKEN') }}"
         name: "Check activity {{ user }}"
         state: absent
       when: user_logged
 
     - name: "Getting new destruction time"
-      set_fact: "destroy_time={{'%Y-%m-%d %H:%M:%S' | strftime(ansible_date_time.epoch|int+1200) }}"
+      set_fact: "destroy_time={{'%Y-%m-%d %H:%M:%S' | strftime(ansible_date_time.epoch|int+alive_timeout|int*60) }}"
       when: user_logged
 
     - name: "Scheduling new EC2 destroyer"
       awx.awx.schedule:
+        controller_host: "{{ lookup('env', 'TOWER_HOST') }}"
+        controller_oauthtoken: "{{ lookup('env', 'TOWER_OAUTH_TOKEN') }}"
         name: "Destroyer of EC2 {{ user }}"
         rrule: "{{ query('awx.awx.schedule_rrule', 'none', timezone='UTC', start_date=destroy_time) }}"
         extra_data:
@@ -36,16 +40,22 @@
     rescue:
     - name: "Destroying scheduled EC2 destroyer"
       awx.awx.schedule:
+        controller_host: "{{ lookup('env', 'TOWER_HOST') }}"
+        controller_oauthtoken: "{{ lookup('env', 'TOWER_OAUTH_TOKEN') }}"
         name: "Destroyer of EC2 {{ user }}"
         state: absent
 
     - name: "Auto destruction in 3 2 1"
       awx.awx.schedule:
+        controller_host: "{{ lookup('env', 'TOWER_HOST') }}"
+        controller_oauthtoken: "{{ lookup('env', 'TOWER_OAUTH_TOKEN') }}"
         name: "Check activity {{ user }}"
         state: absent
 
     - name: "Launching EC2 job destroyer"
       awx.awx.job_launch:
+        controller_host: "{{ lookup('env', 'TOWER_HOST') }}"
+        controller_oauthtoken: "{{ lookup('env', 'TOWER_OAUTH_TOKEN') }}"
         name: "EC2 Destroy"
         job_type: "run"
         inventory: "AWX localhost baremetal"
