@@ -8,7 +8,7 @@
     set_fact: "user={{ firstname[:3] | lower }}-{{ lastname[:6] | lower }}"
 
   - name: "Set user variable (user readability)"
-    set_fact: "login={{ firstname[0] | lower }}-{{ lastname[:6] | lower }}"
+    set_fact: "login={{ firstname[0] | lower }}{{ lastname[:6] | lower }}"
 
   - name: "Cloning Terraform Git"
     git:
@@ -46,13 +46,13 @@
       src: "{{ user }}/user.key"
     register: user_key
 
-## OLD TERRAFORM MODULE IS OUTDATED FOR CURRENT TERRAFORM VERSION
+    ## OLD TERRAFORM MODULE IS OUTDATED FOR CURRENT TERRAFORM VERSION
   - name: "Provisioning EC2"
     no_log: true
     community.general.terraform:
       force_init: yes
       lock: yes
-      project_path: "{{ user }}"
+      project_path: "{{ user }}/"
       state: present
       variables:
         domain: "{{ domain }}"
@@ -68,21 +68,28 @@
       AWS_ACCESS_KEY_ID: "{{ lookup('env', 'AWS_ACCESS_KEY_ID') }}"
       AWS_SECRET_ACCESS_KEY: "{{ lookup('env', 'AWS_SECRET_ACCESS_KEY') }}"
 
+  - name: debug
+    debug:
+      msg: "{{ lookup('env', 'TOWER_HOST') }} ||||| {{ lookup('env', 'TOWER_OAUTH_TOKEN') }}"
+
   - name: "Create SSH credentials for newly created host"
     awx.awx.credential:
+      controller_host: "{{ lookup('env', 'TOWER_HOST') }}"
+      controller_oauthtoken: "{{ lookup('env', 'TOWER_OAUTH_TOKEN') }}"
       name: "{{ user }}.{{ domain }} SSH"
       description: "SSH connection for backdoor"
       state: present
-      organization: "Default"
       credential_type: "Machine"
       inputs:
         username: "rocky"
-        ssh_key_data: "{{ awx_key | b64decode }}"
+        ssh_key_data: "{{ awx_key.content | b64decode }}"
         become_method: "sudo"
         become_username: "root"
 
   - name: "Create HOST in EC2 Managed"
     awx.awx.host:
+      controller_host: "{{ lookup('env', 'TOWER_HOST') }}"
+      controller_oauthtoken: "{{ lookup('env', 'TOWER_OAUTH_TOKEN') }}"
       name: "{{ user }}.{{ domain }}"
       inventory: "EC2 Managed"
       description: "EC2 Managed by AWX, used by {{ firstname }} {{ lastname }}"
@@ -97,6 +104,8 @@
 
   - name: "Launch check activity scheduler"
     awx.awx.schedule:
+      controller_host: "{{ lookup('env', 'TOWER_HOST') }}"
+      controller_oauthtoken: "{{ lookup('env', 'TOWER_OAUTH_TOKEN') }}"
       name: "Check activity {{ user }}"
       description: "Check activity for instance used by {{ firstname }} {{ lastname }}"
       inventory: "EC2 Managed"
@@ -116,6 +125,8 @@
 
   - name: "Launch scheduled EC2 destroyer"
     awx.awx.schedule:
+      controller_host: "{{ lookup('env', 'TOWER_HOST') }}"
+      controller_oauthtoken: "{{ lookup('env', 'TOWER_OAUTH_TOKEN') }}"
       name: "Destroyer of EC2 {{ user }}"
       description: "Timeout, instance is destroyed, DO NOT TOUCH OR BEHAVIOR IS UNDEFINED"
       inventory: "EC2 managed"
