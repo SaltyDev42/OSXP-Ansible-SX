@@ -12,7 +12,7 @@
 
   - name: "Cloning Terraform Git"
     git:
-      repo: ""
+      repo: "https://github.com/SaltyDev42/OSXP-Terraform-SX"
       accept_hostkey: yes
       clone: yes
       force: no
@@ -46,15 +46,33 @@
       src: "{{ user }}/user.key"
     register: user_key
 
-  - name: "Generate tfvars"
-    template:
-      dest: "{{ user }}/terraform.auto.tfvars"
-      src: "terraform.auto.tfvars.j2"
+## OLD TERRAFORM MODULE IS OUTDATED FOR CURRENT TERRAFORM VERSION
+  - name: "Provisioning EC2"
+    no_log: true
+    community.general.terraform:
+      force_init: yes
+      lock: yes
+      project_path: "{{ user }}"
+      state: present
+      variables:
+        domain: "{{ domain }}"
+        project: "{{ project }}"
+        login: "{{ login }}"
+        user:  "{{ user }}"
+        pubkey: "{{ user_pub.public_key }}"
+        awxpubkey: "{{ awx_pub.public_key }}"
+        ec2_type: "{{ instance_type }}"
+        region: "{{ region }}"
+        ami: "{{ ami_id }}"
+    environment:
+      AWS_ACCESS_KEY_ID: "{{ lookup('env', 'AWS_ACCESS_KEY_ID') }}"
+      AWS_SECRET_ACCESS_KEY: "{{ lookup('env', 'AWS_SECRET_ACCESS_KEY') }}"
 
   - name: "Create SSH credentials for newly created host"
     awx.awx.credential:
       name: "{{ user }}.{{ domain }} SSH"
       description: "SSH connection for backdoor"
+      state: present
       organization: "Default"
       credential_type: "Machine"
       inputs:
@@ -74,21 +92,25 @@
   - name: "Set check activity five minute late"
     set_fact: "scheduled_time={{'%Y-%m-%d %H:%M:%S' | strftime(ansible_date_time.epoch|int+300) }}"
 
-  - name: "Set destroy instance 2 hours late"
-    set_fact: "destroy_time={{'%Y-%m-%d %H:%M:%S' | strftime(ansible_date_time.epoch|int+7200) }}"
+  - name: "Set destroy instance {{ idle_timeout }} minute late"
+    set_fact: "destroy_time={{'%Y-%m-%d %H:%M:%S' | strftime(ansible_date_time.epoch|int+idle_timeout*60) }}"
 
   - name: "Launch check activity scheduler"
     awx.awx.schedule:
       name: "Check activity {{ user }}"
       description: "Check activity for instance used by {{ firstname }} {{ lastname }}"
       inventory: "EC2 Managed"
+      extra_data:
+        login: "{{ login }}"
+        user: "{{ user }}"
       credentials:
         - "{{ user }}.{{ domain }} SSH"
+        - "AWX unprivileged token"
       job_type: "run"
       limit: "{{ user }}.{{ domain }}"
       state: present
       enabled: yes
-      unified_job_template: "Check activity"
+      unified_job_template: "The EC2 Checker"
       organization: "Default"
       rrule: "{{ query('awx.awx.schedule_rrule', 'minute', every=1, timezone='UTC', end_on='120', start_date=scheduled_time)}}"
 
@@ -96,14 +118,16 @@
     awx.awx.schedule:
       name: "Destroyer of EC2 {{ user }}"
       description: "Timeout, instance is destroyed, DO NOT TOUCH OR BEHAVIOR IS UNDEFINED"
-      inventory: "AWX localhost baremetal"
+      inventory: "EC2 managed"
       credentials:
-        - "AWX SSH"
-        - "AWS token"
+        - "{{ user }}.{{ domain }} SSH"
       job_type: "run"
+      limit: "{{ user }}.{{ domain }}"
       extra_data:
+        login: "{{ login }}"
+        user: "{{ user }}"
         grade: no
       enabled: yes
-      unified_job_template: "The EC2 destroyer"
+      unified_job_template: "The EC2 Destroyer"
       organization: "Default"
       rrule: "{{ query('awx.awx.schedule_rrule', 'none', timezone='UTC', start_date=destroy_time)}}"

@@ -1,0 +1,25 @@
+---
+- name: "EC2 Destroyer part 2"
+  hosts: all
+  tasks:
+
+  - name: "Destroying EC2 in AWS"
+    community.general.terraform:
+      force_init: no
+      lock: yes
+      state: absent
+      project_path: "{{ user }}"
+    environment:
+      AWS_ACCESS_KEY_ID: "{{ lookup('env', 'AWS_ACCESS_KEY_ID') }}"
+      AWS_SECRET_ACCESS_KEY: "{{ lookup('env', 'AWS_SECRET_ACCESS_KEY') }}"
+
+  - name: "Destroying credential"
+    awx.awx.credential:
+      name: "{{ user }}.{{ domain }} SSH"
+      state: absent
+
+  - name: "Destroying host"
+    awx.awx.host:
+      name: "{{ user }}.{{ domain }}"
+      state: absent
+      inventory: "EC2 Managed"

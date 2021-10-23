@@ -1,1 +1,44 @@
+---
+- name: "EC2 Destroyer part 1"
+  hosts: all
+  tasks:
+  - name: "Attempting to gracefully terminate connection and grade user"
+    block:
+    - name: "Erasing user authorized_keys"
+      become: true
+      file:
+        path: "/home/{{ login }}/.ssh/authorized_keys"
+        state: absent
 
+    ## Violent disconnect, no exception.
+    - name: "Terminating user SSH connection"
+      shell: "sudo -u {{ login }} pkill -9 ssh"
+      changed_when: false
+
+    - name: "Grading resource"
+      awx.awx.job_launch:
+        name: "{{ grade_job_template }}"
+        job_type: "run"
+        inventory: "EC2 Managed"
+        limits: "{{ user }}.{{ domain }}"
+        organization: "Default"
+        credentials:
+          - "{{ user }}.{{ domain }} SSH"
+        wait: yes
+        timeout: 600
+      when: grade
+
+    ## This job will always destroy whether the above task has successfully ran or not
+    always:
+    - name: "Destroying EC2"
+      awx.awx.job_launch:
+        name: "EC2 Destroy"
+        job_type: "run"
+        inventory: "AWX localhost baremetal"
+        organization: "Default"
+        credentials:
+          - "AWX unprivileged token"
+          - "AWS token"
+          - "AWX SSH"
+        wait: yes
+        timeout: 600
