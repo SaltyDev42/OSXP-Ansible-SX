@@ -41,9 +41,6 @@
       changed_when: false
       warn: false
 
-    - debug:
-        var: f
-
     - name: "Copying file to another host"
       awx.awx.job_launch:
         controller_host: "{{ lookup('env', 'TOWER_HOST') }}"
