@@ -101,7 +101,7 @@
     set_fact: "scheduled_time={{'%Y-%m-%d %H:%M:%S' | strftime(ansible_date_time.epoch|int+300) }}"
 
   - name: "Set destroy instance {{ idle_timeout }} minute late"
-    set_fact: "destroy_time={{'%Y-%m-%d %H:%M:%S' | strftime(ansible_date_time.epoch|int+idle_timeout|int*60) }}"
+    set_fact: "destroy_time={{'%Y-%m-%d %H:%M:%S' | strftime(ansible_date_time.epoch|int+idle_timeout|int*60+300) }}"
 
   - name: "Launch check activity scheduler"
     awx.awx.schedule:
