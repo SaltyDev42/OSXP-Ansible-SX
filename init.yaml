@@ -131,7 +131,7 @@
       controller_oauthtoken: "{{ lookup('env', 'TOWER_OAUTH_TOKEN') }}"
       name: "Destroyer of EC2 {{ user }}"
       description: "Timeout, instance is destroyed, DO NOT TOUCH OR BEHAVIOR IS UNDEFINED"
-      inventory: "EC2 managed"
+      inventory: "EC2 Managed"
       credentials:
         - "{{ user }}.{{ domain }} SSH"
         - "AWX unprivilegd token"
