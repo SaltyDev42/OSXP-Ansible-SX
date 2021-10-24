@@ -39,6 +39,7 @@
         extra_data:
           grade: yes
         state: present
+      when: user_logged
 
     ## If the above does not work, destroy the EC2, we are victim of TOCTOU race condition attack
     rescue:
