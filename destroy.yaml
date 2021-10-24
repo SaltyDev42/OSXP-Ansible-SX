@@ -61,7 +61,7 @@
         controller_oauthtoken: "{{ lookup('env', 'TOWER_OAUTH_TOKEN') }}"
         name: "{{ grade_template }}"
         inventory: "EC2 Managed"
-        limits: "{{ user }}.{{ domain }}"
+        limit: "{{ user }}.{{ domain }}"
         organization: "Default"
         extra_vars:
           user: "{{ user }}"
