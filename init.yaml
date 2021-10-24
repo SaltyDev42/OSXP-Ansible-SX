@@ -96,8 +96,9 @@
   - name: "Set check activity 2 minute late"
     set_fact: "scheduled_time={{'%Y-%m-%d %H:%M:%S' | strftime(ansible_date_time.epoch|int+120) }}"
 
+  ## adding 30 sec difference, ansible is not very quick and we are dealing with HTTP, there will be time deltas
   - name: "Set destroy instance {{ idle_timeout }} minute late"
-    set_fact: "destroy_time={{'%Y-%m-%d %H:%M:%S' | strftime(ansible_date_time.epoch|int+idle_timeout|int*60+120) }}"
+    set_fact: "destroy_time={{'%Y-%m-%d %H:%M:%S' | strftime(ansible_date_time.epoch|int+idle_timeout|int*60+120+30) }}"
 
   - name: "Launch check activity scheduler"
     awx.awx.schedule:
@@ -137,6 +138,7 @@
       extra_data:
         login: "{{ login }}"
         user: "{{ user }}"
+        domain: "{{ domain }}"
         grade: no
         grade_template: "{{ grade_template }}"
         file_to_copy: "{{ file_to_copy }}"

@@ -12,7 +12,9 @@
 
     ## Violent disconnect, no exception.
     - name: "Terminating user SSH connection"
-      shell: "sudo -u {{ login }} pkill -9 ssh"
+      become: yes
+      become_user: "{{ login }}"
+      shell: "pkill -9 ssh"
       changed_when: false
     ## This will try to kill every SSH connection, which some will go permission denied.
       ignore_errors: yes
@@ -22,6 +24,10 @@
         path: "{{ item.format(user=user, login=login) }}"
       loop: "{{ file_to_copy }}"
       register: r
+
+    - name: "debug"
+      debug:
+        var: r
 
     - name: "Using DARK ARTS to get the total size, and filtering the nonexistant file out"
       set_fact:
