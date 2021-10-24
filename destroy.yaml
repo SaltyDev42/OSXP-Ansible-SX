@@ -24,15 +24,11 @@
         path: "{{ item.format(user=user, login=login) }}"
       loop: "{{ file_to_copy }}"
       register: r
-
-    - name: "debug"
-      debug:
-        var: r
-
+        
     - name: "Using DARK ARTS to get the total size, and filtering the nonexistant file out"
       set_fact:
-        file_sizetotal: "{{ range(0,r.results|length)|map('extract', r.results)|selectattr('stat.size', 'defined)|map(attribute='stat.size')|sum }}"
-        filtered_file_to_copy: "{{ range(0,r.results|length)|map('extract', r.results)|selectattr('stat.exists')|map(attribute='stat.path')|flatten }}"
+        file_sizetotal: "{{ range(0,r.results|length) | map('extract', r.results)| selectattr('stat.size', 'defined') | map(attribute='stat.size') | sum }}"
+        filtered_file_to_copy: "{{ range(0,r.results|length) | map('extract', r.results) | selectattr('stat.exists') | map(attribute='stat.path') | flatten }}"
 
     - name: "Creating tarball file to copy"
       shell: "tar -czvf - {{ filtered_file_to_copy | join(' ') }} | base64 -w0"
