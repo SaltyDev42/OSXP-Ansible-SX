@@ -10,6 +10,10 @@
       register: r
       changed_when: false
 
+    - name: "Checking stdout output"
+      debug:
+        var: r.stdout
+
     - name: "Checking if user {{ login }} has logged on"
       set_fact: "user_logged={{ r.stdout != '' }}"
 
@@ -57,7 +61,6 @@
         controller_host: "{{ lookup('env', 'TOWER_HOST') }}"
         controller_oauthtoken: "{{ lookup('env', 'TOWER_OAUTH_TOKEN') }}"
         name: "EC2 Destroy"
-        job_type: "run"
         inventory: "AWX localhost baremetal"
         organization: "Default"
         credentials:

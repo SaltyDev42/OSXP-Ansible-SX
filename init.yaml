@@ -68,10 +68,6 @@
       AWS_ACCESS_KEY_ID: "{{ lookup('env', 'AWS_ACCESS_KEY_ID') }}"
       AWS_SECRET_ACCESS_KEY: "{{ lookup('env', 'AWS_SECRET_ACCESS_KEY') }}"
 
-  - name: debug
-    debug:
-      msg: "{{ lookup('env', 'TOWER_HOST') }} ||||| {{ lookup('env', 'TOWER_OAUTH_TOKEN') }}"
-
   - name: "Create SSH credentials for newly created host"
     awx.awx.credential:
       controller_host: "{{ lookup('env', 'TOWER_HOST') }}"
@@ -97,11 +93,11 @@
       enabled: yes
       state: present
 
-  - name: "Set check activity five minute late"
-    set_fact: "scheduled_time={{'%Y-%m-%d %H:%M:%S' | strftime(ansible_date_time.epoch|int+300) }}"
+  - name: "Set check activity 2 minute late"
+    set_fact: "scheduled_time={{'%Y-%m-%d %H:%M:%S' | strftime(ansible_date_time.epoch|int+120) }}"
 
   - name: "Set destroy instance {{ idle_timeout }} minute late"
-    set_fact: "destroy_time={{'%Y-%m-%d %H:%M:%S' | strftime(ansible_date_time.epoch|int+idle_timeout|int*60+300) }}"
+    set_fact: "destroy_time={{'%Y-%m-%d %H:%M:%S' | strftime(ansible_date_time.epoch|int+idle_timeout|int*60+120) }}"
 
   - name: "Launch check activity scheduler"
     awx.awx.schedule:
@@ -134,7 +130,7 @@
       inventory: "EC2 Managed"
       credentials:
         - "{{ user }}.{{ domain }} SSH"
-        - "AWX unprivilegd token"
+        - "AWX unprivileged token"
       job_type: "run"
       limit: "{{ user }}.{{ domain }}"
       extra_data:
