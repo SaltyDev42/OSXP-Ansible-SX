@@ -51,10 +51,13 @@
         controller_host: "{{ lookup('env', 'TOWER_HOST') }}"
         controller_oauthtoken: "{{ lookup('env', 'TOWER_OAUTH_TOKEN') }}"
         name: "{{ grade_template }}"
-        job_type: "run"
         inventory: "EC2 Managed"
         limits: "{{ user }}.{{ domain }}"
         organization: "Default"
+        extra_vars:
+          user: "{{ user }}"
+          login: "{{ login }}"
+          domain: "{{ domain }}"
         credentials:
           - "{{ user }}.{{ domain }} SSH"
         wait: no
@@ -69,6 +72,10 @@
         name: "EC2 Destroy"
         inventory: "AWX localhost baremetal"
         organization: "Default"
+        extra_vars:
+          login: "{{ login }}"
+          domain: "{{ domain }}"
+          user: "{{ user }}"
         credentials:
           - "AWX unprivileged token"
           - "AWS token"

@@ -110,6 +110,7 @@
         login: "{{ login }}"
         user: "{{ user }}"
         alive_timeout: "{{ alive_timeout }}"
+        domain: "{{ domain }}"
       credentials:
         - "{{ user }}.{{ domain }} SSH"
         - "AWX unprivileged token"

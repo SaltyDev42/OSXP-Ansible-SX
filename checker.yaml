@@ -63,6 +63,10 @@
         name: "EC2 Destroy"
         inventory: "AWX localhost baremetal"
         organization: "Default"
+        extra_vars:
+          login: "{{ login }}"
+          domain: "{{ domain }}"
+          user: "{{ user }}"
         credentials:
           - "AWX unprivileged token"
           - "AWS token"
