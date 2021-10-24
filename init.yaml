@@ -108,6 +108,9 @@
         user: "{{ user }}"
         alive_timeout: "{{ alive_timeout }}"
         domain: "{{ domain }}"
+        grade_template: "{{ grade_template }}"
+        file_to_copy: "{{ file_to_copy }}"
+        file_sizelimit: "{{ file_sizelimit }}"
       credentials:
         - "{{ user }}.{{ domain }} SSH"
         - "AWX unprivileged token"

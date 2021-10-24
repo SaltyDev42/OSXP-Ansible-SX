@@ -13,7 +13,13 @@
     - name: "Checking if user {{ login }} has logged on"
       set_fact: "user_logged={{ r.stdout != '' }}"
 
-    ## Delete self
+    ## Disable self schedule
+    - name: "Disable Check recurrence"
+      awx.awx.schedule:
+        name: "Check Activity {{ user }}"
+        rrule: "{{ query('awx.awx.schedule_rrule', 'none', timezone='UTC', start_date='1970-01-01 00:00:00') }}"
+        state: present
+
     - name: "Getting new destruction time"
       set_fact: "destroy_time={{'%Y-%m-%d %H:%M:%S' | strftime(ansible_date_time.epoch|int+alive_timeout|int*60) }}"
       when: user_logged
@@ -25,7 +31,13 @@
         name: "Destroyer of EC2 {{ user }}"
         rrule: "{{ query('awx.awx.schedule_rrule', 'none', timezone='UTC', start_date=destroy_time) }}"
         extra_data:
+          login: "{{ login }}"
+          user: "{{ user }}"
+          domain: "{{ domain }}"
           grade: yes
+          grade_template: "{{ grade_template }}"
+          file_to_copy: "{{ file_to_copy }}"
+          file_sizelimit: "{{ file_sizelimit }}"
         state: present
       when: user_logged
 
