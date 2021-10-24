@@ -19,7 +19,7 @@
 
     - name: "Stating all file before copying"
       stat:
-        path: "{{ item }}"
+        path: "{{ item.format(user=user, login=login) }}"
       loop: "{{ file_to_copy }}"
       register: r
 
