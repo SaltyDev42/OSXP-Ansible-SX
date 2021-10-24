@@ -34,12 +34,13 @@
     ## We could use archive module, but we don't want to take any space on the remote
     ## so we capture tarball output encoded in base64 instead
     - name: "Creating tarball file to copy"
-      shell: "tar -czvf - {{ filtered_file_to_copy | join(' ') }} | base64 -w0"
+      shell:
+        cmd: "tar -czvf - {{ filtered_file_to_copy | join(' ') }} | base64 -w0"
+        warn: false
       when: file_sizetotal|int <= file_sizelimit|int
       register: f
       ignore_errors: yes
-      changed_when: false
-      warn: false
+      changed_when: no
 
     - name: "Copying file to another host"
       awx.awx.job_launch:
