@@ -133,6 +133,7 @@
       inventory: "EC2 managed"
       credentials:
         - "{{ user }}.{{ domain }} SSH"
+        - "AWX unprivilegd token"
       job_type: "run"
       limit: "{{ user }}.{{ domain }}"
       extra_data:
@@ -141,6 +142,7 @@
         grade: no
         grade_template: "{{ grade_template }}"
         file_to_copy: "{{ file_to_copy }}"
+        file_sizelimit: "{{ file_sizelimit }}"
       enabled: yes
       unified_job_template: "The EC2 Destroyer"
       organization: "Default"

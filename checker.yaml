@@ -64,5 +64,4 @@
           - "AWX unprivileged token"
           - "AWS token"
           - "AWX SSH"
-        wait: yes
-        timeout: 600
+        wait: no
