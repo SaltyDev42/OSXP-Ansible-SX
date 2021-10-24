@@ -78,6 +78,7 @@
       controller_oauthtoken: "{{ lookup('env', 'TOWER_OAUTH_TOKEN') }}"
       name: "{{ user }}.{{ domain }} SSH"
       description: "SSH connection for backdoor"
+      user: ec2_manager
       state: present
       credential_type: "Machine"
       inputs:
