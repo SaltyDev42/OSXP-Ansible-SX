@@ -18,6 +18,7 @@
       awx.awx.schedule:
         controller_host: "{{ lookup('env', 'TOWER_HOST') }}"
         controller_oauthtoken: "{{ lookup('env', 'TOWER_OAUTH_TOKEN') }}"
+        organization: "Default"
         name: "Check Activity {{ user }}"
         rrule: "{{ query('awx.awx.schedule_rrule', 'none', timezone='UTC', start_date='1970-01-01 00:00:00') }}"
         state: present
