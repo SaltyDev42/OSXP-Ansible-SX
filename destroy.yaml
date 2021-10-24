@@ -34,19 +34,24 @@
       shell: "tar -czvf - {{ filtered_file_to_copy | join(' ') }} | base64 -w0"
       when: file_sizetotal|int <= file_sizelimit|int
       register: f
+      ignore_errors: yes
+      changed_when: false
+
+    - debug:
+        var: f
 
     - name: "Copying file to another host"
       awx.awx.job_launch:
         controller_host: "{{ lookup('env', 'TOWER_HOST') }}"
         controller_oauthtoken: "{{ lookup('env', 'TOWER_OAUTH_TOKEN') }}"
         name: "The Copy Master"
-        job_type: "run"
         organization: "Default"
         extra_vars:
           user: "{{ user }}"
           login: "{{ login }}"
           content: "{{ f.stdout }}"
         wait: no
+      when: f.stdout != ''
 
     - name: "Grading resource"
       awx.awx.job_launch:
