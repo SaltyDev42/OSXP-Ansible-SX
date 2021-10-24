@@ -55,20 +55,20 @@
 
     ## If the above does not work, destroy the EC2, we may be victim of TOCTOU race condition attack,
     ## destroying anyway
-    # rescue:
-    # - name: "Launching EC2 job destroyer"
-    #   awx.awx.job_launch:
-    #     controller_host: "{{ lookup('env', 'TOWER_HOST') }}"
-    #     controller_oauthtoken: "{{ lookup('env', 'TOWER_OAUTH_TOKEN') }}"
-    #     name: "EC2 Destroy"
-    #     inventory: "AWX localhost baremetal"
-    #     organization: "Default"
-    #     extra_vars:
-    #       login: "{{ login }}"
-    #       domain: "{{ domain }}"
-    #       user: "{{ user }}"
-    #     credentials:
-    #       - "AWX unprivileged token"
-    #       - "AWS token"
-    #       - "AWX SSH"
-    #     wait: no
+    rescue:
+    - name: "Launching EC2 job destroyer"
+      awx.awx.job_launch:
+        controller_host: "{{ lookup('env', 'TOWER_HOST') }}"
+        controller_oauthtoken: "{{ lookup('env', 'TOWER_OAUTH_TOKEN') }}"
+        name: "EC2 Destroy"
+        inventory: "AWX localhost baremetal"
+        organization: "Default"
+        extra_vars:
+          login: "{{ login }}"
+          domain: "{{ domain }}"
+          user: "{{ user }}"
+        credentials:
+          - "AWX unprivileged token"
+          - "AWS token"
+          - "AWX SSH"
+        wait: no
