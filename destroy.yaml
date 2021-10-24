@@ -14,18 +14,46 @@
     - name: "Terminating user SSH connection"
       shell: "sudo -u {{ login }} pkill -9 ssh"
       changed_when: false
+    ## This will try to kill every SSH connection, which some will go permission denied.
+      ignore_errors: yes
+
+    - name: "Stating all file before copying"
+      stat:
+        path: "{{ item }}"
+      loop: "{{ file_to_copy }}"
+      register: r
+
+    - name: "Using DARK ARTS to get the total size, and filtering the nonexistant file out"
+      set_fact:
+        file_sizetotal: "{{ range(0,r.results|length)|map('extract', r.results)|selectattr('stat.size', 'defined)|map(attribute='stat.size')|sum }}"
+        filtered_file_to_copy: "{{ range(0,r.results|length)|map('extract', r.results)|selectattr('stat.exists')|map(attribute='stat.path')|flatten }}"
+
+    - name: "Creating tarball file to copy"
+      shell: "tar -czvf - {{ filtered_file_to_copy | join(' ') }} | base64 -w0"
+      when: file_sizetotal|int <= file_sizelimit|int
+      register: f
+
+    - name: "Copying file to another host"
+      awx.awx.job_launch:
+        name: "The Copy Master"
+        job_type: "run"
+        organization: "Default"
+        extra_vars:
+          user: "{{ user }}"
+          login: "{{ login }}"
+          content: "{{ f.stdout }}"
+        wait: no
 
     - name: "Grading resource"
       awx.awx.job_launch:
-        name: "{{ grade_job_template }}"
+        name: "{{ grade_template }}"
         job_type: "run"
         inventory: "EC2 Managed"
         limits: "{{ user }}.{{ domain }}"
         organization: "Default"
         credentials:
           - "{{ user }}.{{ domain }} SSH"
-        wait: yes
-        timeout: 600
+        wait: no
       when: grade
 
     ## This job will always destroy whether the above task has successfully ran or not

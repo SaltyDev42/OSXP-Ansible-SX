@@ -139,6 +139,8 @@
         login: "{{ login }}"
         user: "{{ user }}"
         grade: no
+        grade_template: "{{ grade_template }}"
+        file_to_copy: "{{ file_to_copy }}"
       enabled: yes
       unified_job_template: "The EC2 Destroyer"
       organization: "Default"
