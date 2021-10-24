@@ -18,14 +18,6 @@
       set_fact: "user_logged={{ r.stdout != '' }}"
 
     ## Delete self
-    - name: "Auto destruction in 3 2 1"
-      awx.awx.schedule:
-        controller_host: "{{ lookup('env', 'TOWER_HOST') }}"
-        controller_oauthtoken: "{{ lookup('env', 'TOWER_OAUTH_TOKEN') }}"
-        name: "Check activity {{ user }}"
-        state: absent
-      when: user_logged
-
     - name: "Getting new destruction time"
       set_fact: "destroy_time={{'%Y-%m-%d %H:%M:%S' | strftime(ansible_date_time.epoch|int+alive_timeout|int*60) }}"
       when: user_logged

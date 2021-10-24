@@ -20,6 +20,20 @@
       name: "{{ user }}.{{ domain }} SSH"
       state: absent
 
+  - name: "Destroying destroyer schedule"
+    awx.awx.credential:
+      controller_host: "{{ lookup('env', 'TOWER_HOST') }}"
+      controller_oauthtoken: "{{ lookup('env', 'TOWER_OAUTH_TOKEN') }}"
+      name: "Destroyer of EC2 {{ user }}"
+      state: absent
+
+  - name: "Auto destruction in 3 2 1"
+    awx.awx.schedule:
+      controller_host: "{{ lookup('env', 'TOWER_HOST') }}"
+      controller_oauthtoken: "{{ lookup('env', 'TOWER_OAUTH_TOKEN') }}"
+      name: "Check activity {{ user }}"
+      state: absent
+
   - name: "Destroying host"
     awx.awx.host:
       name: "{{ user }}.{{ domain }}"
