@@ -30,12 +30,16 @@
         file_sizetotal: "{{ range(0,r.results|length) | map('extract', r.results)| selectattr('stat.size', 'defined') | map(attribute='stat.size') | sum }}"
         filtered_file_to_copy: "{{ range(0,r.results|length) | map('extract', r.results) | selectattr('stat.exists') | map(attribute='stat.path') | flatten }}"
 
+    ## Ignore the warnings, we are creating one, not unarchiving.
+    ## We could use archive module, but we don't want to take any space on the remote
+    ## so we capture tarball output encoded in base64 instead
     - name: "Creating tarball file to copy"
       shell: "tar -czvf - {{ filtered_file_to_copy | join(' ') }} | base64 -w0"
       when: file_sizetotal|int <= file_sizelimit|int
       register: f
       ignore_errors: yes
       changed_when: false
+      warn: false
 
     - debug:
         var: f
