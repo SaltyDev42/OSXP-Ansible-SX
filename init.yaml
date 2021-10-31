@@ -10,6 +10,12 @@
   - name: "Set user variable (user readability)"
     set_fact: "login={{ firstname[0] | lower }}{{ lastname[:6] | lower }}"
 
+  - name: "Creating context directory"
+    file:
+      name: "{{ user }}"
+      state: directory
+      mode: 750
+
   - name: "Cloning Terraform Git"
     git:
       repo: "https://github.com/SaltyDev42/OSXP-Terraform-SX"
