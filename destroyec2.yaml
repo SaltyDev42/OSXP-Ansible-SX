@@ -8,7 +8,10 @@
       force_init: no
       lock: yes
       state: absent
-      project_path: "{{ user }}/"
+      project_path: "OSXP-Terraform-SX/"
+      state_file: "{{ user }}/terraform.tfstate"
+      variable_files:
+        - "{{ user }}/terraform.auto.tfvars"
     environment:
       AWS_ACCESS_KEY_ID: "{{ lookup('env', 'AWS_ACCESS_KEY_ID') }}"
       AWS_SECRET_ACCESS_KEY: "{{ lookup('env', 'AWS_SECRET_ACCESS_KEY') }}"
