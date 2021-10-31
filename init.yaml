@@ -69,7 +69,7 @@
     no_log: false
     community.general.terraform:
       force_init: yes
-      lock: yes
+      lock: no
       project_path: "OSXP-Terraform-SX/"
       state: present
       workspace: "{{ user }}"
@@ -110,7 +110,7 @@
       port: 22
       state: started
       sleep: 5
-      register: delta
+    register: delta
 
   - name: "Launching Resource provisioner"
     awx.awx.job_launch:

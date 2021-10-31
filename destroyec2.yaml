@@ -6,7 +6,7 @@
   - name: "Destroying EC2 in AWS"
     community.general.terraform:
       force_init: no
-      lock: yes
+      lock: no
       purge_workspace: yes
       state: absent
       project_path: "OSXP-Terraform-SX/"
