@@ -110,6 +110,7 @@
       port: 22
       state: started
       sleep: 5
+      register: delta
 
   - name: "Launching Resource provisioner"
     awx.awx.job_launch:
@@ -129,8 +130,12 @@
     
   ## adding 30 sec difference, ansible is not very quick and we are dealing with HTTP and Ansible,
   ## there will be time deltas.
+
+  - name: "Set scheduled_time start time"
+    set_fact: "scheduled_time={{'%Y-%m-%d %H:%M:%S' | strftime(ansible_date_time.epoch|int+10+delta.elapsed) }}"
+
   - name: "Set destroy instance {{ idle_timeout }} minute late"
-    set_fact: "destroy_time={{'%Y-%m-%d %H:%M:%S' | strftime(ansible_date_time.epoch|int+idle_timeout|int*60+30) }}"
+    set_fact: "destroy_time={{'%Y-%m-%d %H:%M:%S' | strftime(ansible_date_time.epoch|int+idle_timeout|int*60+30+delta.elapsed) }}"
 
   - name: "Launch check activity scheduler"
     awx.awx.schedule:

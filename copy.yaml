@@ -1,7 +1,6 @@
 ---
 - name: "Copy from extra_vars to file"
   hosts: all
-  beocme: no
   tasks:
 
   - name: "Creating the tarball file from content in extra_vars"
