@@ -60,7 +60,7 @@
 
     ## OLD TERRAFORM MODULE IS OUTDATED FOR CURRENT TERRAFORM VERSION
   - name: "Provisioning EC2"
-    no_log: true
+    no_log: false
     community.general.terraform:
       force_init: yes
       lock: yes
