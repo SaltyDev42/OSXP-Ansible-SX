@@ -69,10 +69,10 @@
     no_log: false
     community.general.terraform:
       force_init: yes
-      lock: no
+      lock: yes
       project_path: "OSXP-Terraform-SX/"
       state: present
-      state_file: "/home/{{ ansible_user }}/{{ user }}/terraform.tfstate"
+      workspace: "{{ user }}"
       variables_files:
         - "/home/{{ ansible_user }}/{{ user }}/terraform.auto.tfvars"
     environment:

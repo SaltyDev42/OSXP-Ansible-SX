@@ -6,10 +6,11 @@
   - name: "Destroying EC2 in AWS"
     community.general.terraform:
       force_init: no
-      lock: no
+      lock: yes
+      purge_workspace: yes
       state: absent
       project_path: "OSXP-Terraform-SX/"
-      state_file: "/home/{{ ansible_user }}/{{ user }}/terraform.tfstate"
+      workspace: "{{ user }}"
       variable_files:
         - "/home/{{ ansible_user }}/{{ user }}/terraform.auto.tfvars"
     environment:
