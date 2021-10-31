@@ -14,7 +14,13 @@
     file:
       name: "{{ user }}"
       state: directory
-      mode: 750
+      mode: 0750
+
+  - name: "Creating empty terraform state"
+    file:
+      name: "{{ user }}/terraform.tfstate"
+      state: touch
+      mode: 0644
 
   - name: "Cloning Terraform Git"
     git:
@@ -63,12 +69,12 @@
     no_log: false
     community.general.terraform:
       force_init: yes
-      lock: yes
+      lock: no
       project_path: "OSXP-Terraform-SX/"
       state: present
-      state_file: "{{ user }}/terraform.tfstate"
-      variable_files:
-        - "{{ user }}/terraform.auto.tfvars"
+      state_file: "/home/{{ ansible_user }}/{{ user }}/terraform.tfstate"
+      variables_files:
+        - "/home/{{ ansible_user }}/{{ user }}/terraform.auto.tfvars"
     environment:
       AWS_ACCESS_KEY_ID: "{{ lookup('env', 'AWS_ACCESS_KEY_ID') }}"
       AWS_SECRET_ACCESS_KEY: "{{ lookup('env', 'AWS_SECRET_ACCESS_KEY') }}"
@@ -100,8 +106,6 @@
 
   - name: "Waiting for HOST to be ready"
     wait_for:
-      connect_timeout: 15
-      delay: 120
       host: "{{ user }}.{{ domain }}"
       port: 22
       state: started
@@ -120,7 +124,7 @@
         login: "{{ login }}"
         domain: "{{ domain }}"
       credentials:
-        - "{{ user }}.{{ domain }} SSH "
+        - "{{ user }}.{{ domain }} SSH"
       wait: no
     
   ## adding 30 sec difference, ansible is not very quick and we are dealing with HTTP and Ansible,

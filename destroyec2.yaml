@@ -6,12 +6,12 @@
   - name: "Destroying EC2 in AWS"
     community.general.terraform:
       force_init: no
-      lock: yes
+      lock: no
       state: absent
       project_path: "OSXP-Terraform-SX/"
-      state_file: "{{ user }}/terraform.tfstate"
+      state_file: "/home/{{ ansible_user }}/{{ user }}/terraform.tfstate"
       variable_files:
-        - "{{ user }}/terraform.auto.tfvars"
+        - "/home/{{ ansible_user }}/{{ user }}/terraform.auto.tfvars"
     environment:
       AWS_ACCESS_KEY_ID: "{{ lookup('env', 'AWS_ACCESS_KEY_ID') }}"
       AWS_SECRET_ACCESS_KEY: "{{ lookup('env', 'AWS_SECRET_ACCESS_KEY') }}"
